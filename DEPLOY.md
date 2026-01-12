@@ -22,8 +22,10 @@
    - Select your repository
    - Configure build settings:
      - **Framework preset**: None
-     - **Build command**: (leave empty)
-     - **Build output directory**: `/` (root directory)
+     - **Build command**: None
+     - **Deploy command**: `bash deploy.sh`
+     - **Version command**: `bash deploy-preview.sh`
+     - **Root directory**: `/`
    - Click "Save and Deploy"
 
 4. **Your site will be live!**
