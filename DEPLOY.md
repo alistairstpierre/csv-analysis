@@ -41,9 +41,20 @@ This is a static site, so no build process is needed:
 - `input/data.csv` - Data file (loaded automatically)
 - `_headers` - Security headers for Cloudflare Pages
 
+## Troubleshooting
+
+If you see "hello world" or a blank page:
+
+1. **Check Build Output Directory**: Make sure it's set to `/` (root)
+2. **Verify Files**: Ensure `index.html` is in the root directory
+3. **Check Build Logs**: In Cloudflare Pages, check the build logs to see if files are being deployed
+4. **Wait for Deployment**: After pushing, wait a minute for Cloudflare to rebuild
+5. **Clear Cache**: Try hard refresh (Ctrl+Shift+R or Cmd+Shift+R)
+
 ## Notes
 
 - The CSV file in `input/data.csv` will be served statically
 - Chart.js is loaded from CDN (already configured in CSP)
 - All processing happens client-side
 - No server-side code required
+- The `_redirects` file ensures all routes point to `index.html`
