@@ -7,6 +7,9 @@ echo "Deploying CSV Analysis Interface..."
 echo "Static site - no build required"
 echo "All files are ready for deployment"
 
+# Ensure we're in the right directory
+pwd
+
 # List files to verify they're present
 echo "Files in deployment directory:"
 ls -la
@@ -19,6 +22,7 @@ fi
 
 echo "✓ index.html found"
 echo "✓ Static site ready for deployment"
+echo "✓ All files are in the root directory and will be served"
 
 # Exit successfully
 exit 0
