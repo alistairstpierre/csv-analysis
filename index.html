@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self';">
+    <title>CSV Data Analysis Interface</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="filters-section" id="filtersSection" style="display: none;">
+            <div class="filters-bar">
+                <div class="filter-group">
+                    <label for="sourceFilter">Source (Ctrl/Cmd to multi-select):</label>
+                    <select id="sourceFilter" multiple size="4">
+                        <option value="">All Sources</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="statusFilter">Status (Ctrl/Cmd to multi-select):</label>
+                    <select id="statusFilter" multiple size="4">
+                        <option value="">All Statuses</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="tagsFilter">Tags (Ctrl/Cmd to multi-select):</label>
+                    <select id="tagsFilter" multiple size="4">
+                        <option value="">All Tags</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="startDate">Start Date:</label>
+                    <input type="date" id="startDate" />
+                </div>
+
+                <div class="filter-group">
+                    <label for="endDate">End Date:</label>
+                    <input type="date" id="endDate" />
+                </div>
+
+                <div class="filter-actions">
+                    <button id="applyFilters" class="btn btn-primary">Apply</button>
+                    <button id="clearFilters" class="btn btn-secondary">Clear</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-section" id="statsSection" style="display: none;">
+            <h2>Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalCount">0</div>
+                    <div class="stat-label">Total Records</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="filteredCount">0</div>
+                    <div class="stat-label">Filtered Records</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="conversionRate">0%</div>
+                    <div class="stat-label">Conversion Rate</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-section" id="chartSection" style="display: none;">
+            <div class="chart-container">
+                <canvas id="leadsChart"></canvas>
+            </div>
+        </div>
+
+        <div class="table-section" id="tableSection" style="display: none;">
+            <h2>Results</h2>
+            <div class="table-controls">
+                <input type="text" id="searchInput" placeholder="Search records..." />
+                <button id="exportBtn" class="btn btn-secondary">Export Filtered Data</button>
+            </div>
+            <div class="table-wrapper">
+                <table id="dataTable">
+                    <thead id="tableHead"></thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
