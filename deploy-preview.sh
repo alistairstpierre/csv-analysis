@@ -4,7 +4,14 @@
 
 echo "Building preview for CSV Analysis Interface..."
 echo "Static site - no build required"
-echo "Preview deployment ready"
+
+# Ensure index.html exists
+if [ ! -f "index.html" ]; then
+    echo "ERROR: index.html not found!"
+    exit 1
+fi
+
+echo "✓ Preview deployment ready"
 
 # Exit successfully
 exit 0
