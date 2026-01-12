@@ -29,23 +29,33 @@ csv analysis/
 - **Pagination**: Navigate through large datasets (50 records per page)
 - **Export Functionality**: Export filtered data as CSV
 
-## Running on Localhost
+## Deployment
 
-### Option 1: Python HTTP Server (Recommended)
+### Cloudflare Pages
+This project is ready for deployment on Cloudflare Pages:
+
+1. Push your code to GitHub, GitLab, or Bitbucket
+2. Connect your repository to Cloudflare Pages
+3. Set build settings:
+   - **Build command**: (leave empty - this is a static site)
+   - **Build output directory**: `/` (root)
+4. Deploy!
+
+The site will be automatically deployed on every push to your main branch.
+
+### Running on Localhost
+
+#### Option 1: Python HTTP Server (Recommended)
 ```bash
-cd "/Users/alistairstpierre/Documents/csv analysis"
 python3 -m http.server 8000
 ```
 Then open your browser and navigate to: `http://localhost:8000`
 
-### Option 2: Node.js http-server
+#### Option 2: Node.js http-server
 If you have Node.js installed:
 ```bash
 npx http-server -p 8000
 ```
-
-### Option 3: Direct File Opening
-You can also simply open `index.html` directly in your browser, though some browsers may have restrictions on file uploads when opened as a file:// URL.
 
 ## How to Use
 
