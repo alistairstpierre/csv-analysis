@@ -7,6 +7,7 @@ let filteredData = [];
 let currentPage = 1;
 const recordsPerPage = 50;
 let leadsChart = null;
+let chartSegmentBy = 'Type'; // Default segment by Type
 
 // Initialize the application
 function initApp() {
@@ -25,6 +26,15 @@ function initApp() {
     document.getElementById('clearFilters').addEventListener('click', clearFilters);
     document.getElementById('searchInput').addEventListener('input', handleSearch);
     document.getElementById('exportBtn').addEventListener('click', exportFilteredData);
+    
+    // Chart segment selector
+    const chartSegmentSelect = document.getElementById('chartSegmentBy');
+    if (chartSegmentSelect) {
+        chartSegmentSelect.addEventListener('change', (e) => {
+            chartSegmentBy = e.target.value;
+            updateChart();
+        });
+    }
 }
 
 // Wait for DOM and Chart.js to be ready
@@ -285,26 +295,46 @@ function updateChart() {
         return;
     }
     
-    // Group leads by date and Type
-    const dateTypeCounts = new Map(); // Map of date -> Map of Type -> count
+    // Get the segment field (Type, Source, Status, or Tags)
+    const segmentField = chartSegmentBy;
+    
+    // Group leads by date and segment field
+    const dateSegmentCounts = new Map(); // Map of date -> Map of segment -> count
     const dates = [];
-    const typesSet = new Set();
+    const segmentsSet = new Set();
     
     filteredData.forEach(record => {
         const date = parseDate(record.Created);
-        const type = record.Type || 'Unknown';
         if (date) {
             // Group by day (YYYY-MM-DD)
             const dateKey = date.toISOString().split('T')[0];
             
-            if (!dateTypeCounts.has(dateKey)) {
-                dateTypeCounts.set(dateKey, new Map());
+            if (!dateSegmentCounts.has(dateKey)) {
+                dateSegmentCounts.set(dateKey, new Map());
             }
-            const typeCounts = dateTypeCounts.get(dateKey);
-            typeCounts.set(type, (typeCounts.get(type) || 0) + 1);
+            const segmentCounts = dateSegmentCounts.get(dateKey);
+            
+            // Handle Tags specially (comma-separated)
+            if (segmentField === 'Tags') {
+                const tags = record.Tags ? record.Tags.split(',').map(t => t.trim()).filter(t => t) : [];
+                if (tags.length === 0) {
+                    const segment = 'No Tags';
+                    segmentCounts.set(segment, (segmentCounts.get(segment) || 0) + 1);
+                    segmentsSet.add(segment);
+                } else {
+                    tags.forEach(tag => {
+                        segmentCounts.set(tag, (segmentCounts.get(tag) || 0) + 1);
+                        segmentsSet.add(tag);
+                    });
+                }
+            } else {
+                // Handle Type, Source, Status
+                const segment = record[segmentField] || 'Unknown';
+                segmentCounts.set(segment, (segmentCounts.get(segment) || 0) + 1);
+                segmentsSet.add(segment);
+            }
             
             dates.push(date);
-            typesSet.add(type);
         }
     });
     
@@ -369,19 +399,19 @@ function updateChart() {
         'rgba(121, 85, 72, 0.8)'      // Brown
     ];
     
-    // Sort types for consistent ordering
-    const sortedTypes = Array.from(typesSet).sort();
+    // Sort segments for consistent ordering
+    const sortedSegments = Array.from(segmentsSet).sort();
     
-    // Create datasets for each type (stacked bars)
-    const datasets = sortedTypes.map((type, index) => {
+    // Create datasets for each segment (stacked bars)
+    const datasets = sortedSegments.map((segment, index) => {
         const color = colors[index % colors.length];
         const data = allDates.map(item => {
-            const typeCounts = dateTypeCounts.get(item.key);
-            return typeCounts ? (typeCounts.get(type) || 0) : 0;
+            const segmentCounts = dateSegmentCounts.get(item.key);
+            return segmentCounts ? (segmentCounts.get(segment) || 0) : 0;
         });
         
         return {
-            label: type,
+            label: segment,
             data: data,
             backgroundColor: color,
             borderColor: color.replace('0.8', '1'),
@@ -419,10 +449,10 @@ function updateChart() {
                             return context[0].label;
                         },
                         label: function(context) {
-                            const type = context.dataset.label;
+                            const segment = context.dataset.label;
                             const value = context.parsed.y;
                             if (value > 0) {
-                                return type + ': ' + value + ' lead' + (value !== 1 ? 's' : '');
+                                return segment + ': ' + value + ' lead' + (value !== 1 ? 's' : '');
                             }
                             return '';
                         },

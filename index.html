@@ -69,6 +69,15 @@
         </div>
 
         <div class="chart-section" id="chartSection" style="display: none;">
+            <div class="chart-controls">
+                <label for="chartSegmentBy">Segment by:</label>
+                <select id="chartSegmentBy">
+                    <option value="Type">Type</option>
+                    <option value="Source">Source</option>
+                    <option value="Status">Status</option>
+                    <option value="Tags">Tags</option>
+                </select>
+            </div>
             <div class="chart-container">
                 <canvas id="leadsChart"></canvas>
             </div>
