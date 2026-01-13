@@ -285,17 +285,26 @@ function updateChart() {
         return;
     }
     
-    // Group leads by date
-    const dateCounts = new Map();
+    // Group leads by date and Type
+    const dateTypeCounts = new Map(); // Map of date -> Map of Type -> count
     const dates = [];
+    const typesSet = new Set();
     
     filteredData.forEach(record => {
         const date = parseDate(record.Created);
+        const type = record.Type || 'Unknown';
         if (date) {
             // Group by day (YYYY-MM-DD)
             const dateKey = date.toISOString().split('T')[0];
-            dateCounts.set(dateKey, (dateCounts.get(dateKey) || 0) + 1);
+            
+            if (!dateTypeCounts.has(dateKey)) {
+                dateTypeCounts.set(dateKey, new Map());
+            }
+            const typeCounts = dateTypeCounts.get(dateKey);
+            typeCounts.set(type, (typeCounts.get(type) || 0) + 1);
+            
             dates.push(date);
+            typesSet.add(type);
         }
     });
     
@@ -307,15 +316,10 @@ function updateChart() {
             leadsChart.destroy();
         }
         leadsChart = new Chart(ctx, {
-            type: 'line',
+            type: 'bar',
             data: {
                 labels: [],
-                datasets: [{
-                    label: 'Leads',
-                    data: [],
-                    borderColor: 'rgb(102, 126, 234)',
-                    backgroundColor: 'rgba(102, 126, 234, 0.1)'
-                }]
+                datasets: []
             },
             options: {
                 responsive: true,
@@ -341,17 +345,49 @@ function updateChart() {
         const dateKey = currentDate.toISOString().split('T')[0];
         allDates.push({
             key: dateKey,
-            date: new Date(currentDate),
-            count: dateCounts.get(dateKey) || 0
+            date: new Date(currentDate)
         });
         currentDate.setDate(currentDate.getDate() + 1);
     }
     
-    // Create labels and data arrays with all dates
+    // Create labels
     const labels = allDates.map(item => {
         return item.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     });
-    const data = allDates.map(item => item.count);
+    
+    // Color palette for different types
+    const colors = [
+        'rgba(102, 126, 234, 0.8)',   // Purple
+        'rgba(76, 175, 80, 0.8)',     // Green
+        'rgba(255, 152, 0, 0.8)',     // Orange
+        'rgba(244, 67, 54, 0.8)',     // Red
+        'rgba(33, 150, 243, 0.8)',    // Blue
+        'rgba(156, 39, 176, 0.8)',    // Purple
+        'rgba(255, 87, 34, 0.8)',     // Deep Orange
+        'rgba(0, 188, 212, 0.8)',     // Cyan
+        'rgba(255, 193, 7, 0.8)',     // Amber
+        'rgba(121, 85, 72, 0.8)'      // Brown
+    ];
+    
+    // Sort types for consistent ordering
+    const sortedTypes = Array.from(typesSet).sort();
+    
+    // Create datasets for each type (stacked bars)
+    const datasets = sortedTypes.map((type, index) => {
+        const color = colors[index % colors.length];
+        const data = allDates.map(item => {
+            const typeCounts = dateTypeCounts.get(item.key);
+            return typeCounts ? (typeCounts.get(type) || 0) : 0;
+        });
+        
+        return {
+            label: type,
+            data: data,
+            backgroundColor: color,
+            borderColor: color.replace('0.8', '1'),
+            borderWidth: 1
+        };
+    });
     
     const ctx = document.getElementById('leadsChart');
     if (!ctx) return;
@@ -362,19 +398,10 @@ function updateChart() {
     }
     
     leadsChart = new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: {
             labels: labels,
-            datasets: [{
-                label: 'Leads',
-                data: data,
-                borderColor: 'rgb(102, 126, 234)',
-                backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                tension: 0.4,
-                fill: true,
-                pointRadius: 3,
-                pointHoverRadius: 5
-            }]
+            datasets: datasets
         },
         options: {
             responsive: true,
@@ -386,17 +413,36 @@ function updateChart() {
                 },
                 tooltip: {
                     mode: 'index',
-                    intersect: false
+                    intersect: false,
+                    callbacks: {
+                        title: function(context) {
+                            return context[0].label;
+                        },
+                        label: function(context) {
+                            const type = context.dataset.label;
+                            const value = context.parsed.y;
+                            if (value > 0) {
+                                return type + ': ' + value + ' lead' + (value !== 1 ? 's' : '');
+                            }
+                            return '';
+                        },
+                        afterBody: function(context) {
+                            const total = context.reduce((sum, item) => sum + item.parsed.y, 0);
+                            return total > 0 ? 'Total: ' + total + ' lead' + (total !== 1 ? 's' : '') : '';
+                        }
+                    }
                 }
             },
             scales: {
                 y: {
                     beginAtZero: true,
+                    stacked: true,
                     ticks: {
                         stepSize: 1
                     }
                 },
                 x: {
+                    stacked: true,
                     ticks: {
                         maxRotation: 45,
                         minRotation: 45
