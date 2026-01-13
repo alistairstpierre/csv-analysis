@@ -287,6 +287,7 @@ function updateChart() {
     
     // Group leads by date
     const dateCounts = new Map();
+    const dates = [];
     
     filteredData.forEach(record => {
         const date = parseDate(record.Created);
@@ -294,16 +295,63 @@ function updateChart() {
             // Group by day (YYYY-MM-DD)
             const dateKey = date.toISOString().split('T')[0];
             dateCounts.set(dateKey, (dateCounts.get(dateKey) || 0) + 1);
+            dates.push(date);
         }
     });
     
-    // Sort dates
-    const sortedDates = Array.from(dateCounts.keys()).sort();
-    const labels = sortedDates.map(date => {
-        const d = new Date(date);
-        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    // If no dates, show empty chart
+    if (dates.length === 0) {
+        const ctx = document.getElementById('leadsChart');
+        if (!ctx) return;
+        if (leadsChart) {
+            leadsChart.destroy();
+        }
+        leadsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Leads',
+                    data: [],
+                    borderColor: 'rgb(102, 126, 234)',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+        return;
+    }
+    
+    // Find min and max dates
+    const minDate = new Date(Math.min(...dates));
+    const maxDate = new Date(Math.max(...dates));
+    
+    // Set time to midnight for consistent date comparison
+    minDate.setHours(0, 0, 0, 0);
+    maxDate.setHours(0, 0, 0, 0);
+    
+    // Generate all dates in the range
+    const allDates = [];
+    const currentDate = new Date(minDate);
+    
+    while (currentDate <= maxDate) {
+        const dateKey = currentDate.toISOString().split('T')[0];
+        allDates.push({
+            key: dateKey,
+            date: new Date(currentDate),
+            count: dateCounts.get(dateKey) || 0
+        });
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    // Create labels and data arrays with all dates
+    const labels = allDates.map(item => {
+        return item.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     });
-    const data = sortedDates.map(date => dateCounts.get(date));
+    const data = allDates.map(item => item.count);
     
     const ctx = document.getElementById('leadsChart');
     if (!ctx) return;
